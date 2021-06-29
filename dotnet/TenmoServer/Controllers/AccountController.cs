@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TenmoServer.DAO;
+using TenmoServer.Models;
+
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -18,15 +20,29 @@ namespace TenmoServer.Controllers
         {
             _dao = _accountDao;
         }
+
         //GET: account balance
-       [HttpGet]
-        public ActionResult<decimal> GetAccountBalance()
+        [HttpGet]
+        public ActionResult<Account> GetAccountBalance()
         {
+
             int userId = Convert.ToInt32(User.FindFirst("sub")?.Value);
 
-            decimal accountBalance = _dao.GetAccountBalance(userId);
+            Account account = _dao.GetAccount(userId);
 
-            return Ok(accountBalance);
+            if (account == null)
+            {
+                return StatusCode(500, "Internal Server Error. Please try again later.");
+            }
+            else if (account.Balance == -1)
+            {
+                return NotFound();
+            }
+
+            return Ok(account);
+
+
+            
 
         }
 
