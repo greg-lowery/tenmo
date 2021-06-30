@@ -65,6 +65,7 @@ namespace TenmoClient
             }
             else
             {
+                //From Joe: UserService.SetLogin(response.Data);
                 client.Authenticator = new JwtAuthenticator(response.Data.Token);
                 return response.Data;
             }
