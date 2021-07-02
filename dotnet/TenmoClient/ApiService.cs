@@ -14,7 +14,6 @@ namespace TenmoClient
         public IRestClient client = new RestClient();
 
         public Account GetAccountInfo()
-
         {
             var request = new RestRequest($"{API_URL}account", DataFormat.Json);
             client.Authenticator = new JwtAuthenticator(UserService.GetToken());
@@ -39,14 +38,37 @@ namespace TenmoClient
             
         }
 
-        public bool VerifyTransferAccountExists(Account account)
-
+        public bool VerifyTransferAccountExists(Account accountToVerify)
         {
-            var request = new RestRequest($"{API_URL}account", DataFormat.Json);
+            var request = new RestRequest($"{API_URL}account/verify", DataFormat.Json);
             client.Authenticator = new JwtAuthenticator(UserService.GetToken());
-            request.AddJsonBody(account);
-            IRestResponse<Account> response = client.Get<Account>(request);
+            request.AddJsonBody(accountToVerify);
+            IRestResponse<Account> response = client.Post<Account>(request);
 
+            if (response.ResponseStatus != ResponseStatus.Completed)
+            {
+                throw new Exception("Unable to reach server. Please try again later.", response.ErrorException);
+            }
+            else if (!response.IsSuccessful && (int)response.StatusCode == 500)
+            {
+                throw new Exception("Internal Server Error - Status Code : 500");
+            }
+            else if ((int)response.StatusCode == 404)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        public Transfer SubmitTransferForProcessing(Transfer transfer)
+        {
+            RestRequest request = new RestRequest(API_URL, DataFormat.Json);
+            request.AddJsonBody(transfer);
+
+            IRestResponse<Transfer> response = client.Post<Transfer>(request);
 
             if (response.ResponseStatus != ResponseStatus.Completed)
             {
@@ -58,13 +80,20 @@ namespace TenmoClient
             }
             else if (!response.IsSuccessful && (int)response.StatusCode == 404)
             {
-                throw new Exception("Bad Request - Status Code : 404");
+                throw new Exception("Transfer Account Not Found - Status Code : 404");
             }
-            else if (response.Data == null)
+            else if (1 == 2)
             {
-                return false;
+                //ERROR FOR INSUFFICIENT FUNDS - 400 error
             }
-            else return true;
+            else if (1 == 2)
+            {
+                
+            }
+
+            Transfer completedTransfer = response.Data;
+
+            return completedTransfer;
         }
 
     }

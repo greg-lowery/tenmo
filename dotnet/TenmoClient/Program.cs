@@ -107,28 +107,56 @@ namespace TenmoClient
                 }
                 else if (menuSelection == 4)
                 {
-                    Console.WriteLine("Please enter the amount you would like to transfer in the format 0.00: ");
-
+                    Console.WriteLine("Please enter the amount you would like to transfer in the format 0.00:");
                     string userInput = Console.ReadLine();
 
+                    decimal amtToTransfer;
+                    int accountId;
 
-                    while (!decimal.TryParse(userInput, out decimal amtToTransfer) || userInput.Substring(userInput.IndexOf('.') + 1).Length != 2)
+                    while (!decimal.TryParse(userInput, out amtToTransfer) || userInput.Substring(userInput.IndexOf('.') + 1).Length != 2)
                     {
                         Console.WriteLine("Invalid transfer amount submitted. Please try again.");
                         userInput = Console.ReadLine();
                     }
 
-                    Console.WriteLine("Please enter the account number you would like to transfer to: ");
-
+                    Console.WriteLine("Please enter the account number you would like to transfer to:");
                     userInput = Console.ReadLine();
 
-
-                    while (!int.TryParse(userInput, out int accountId) || accountId < 2001)
+                    while (!int.TryParse(userInput, out accountId) || accountId < 2001)
                     {
                         Console.WriteLine("Invalid account number submitted. Please try again.");
                         userInput = Console.ReadLine();
                     }
 
+                    Account accountToVerify = new Account();
+                    accountToVerify.AccountId = accountId;
+
+                    bool transferAccountExists = apiService.VerifyTransferAccountExists(accountToVerify);
+
+                    if (transferAccountExists)
+                    {
+                        Console.WriteLine("Account exists!");
+                        /*
+                        Transfer transfer = new Transfer();
+                        transfer.AccountTo = accountId;
+                        transfer.TransferAmount = amtToTransfer;
+
+                        try
+                        {
+                            apiService.SubmitTransferForProcessing(transfer);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                        }
+                        */
+                    }
+                    else
+                    {
+                        Console.WriteLine("Account entered does not exist. Please make a new request again.");
+                    }
+                    //We want to send the account # and transfer amount to the server to conduct the transfer
+                    //>>>Write an API Service method that sends the transfer to the server
                 }
                 else if (menuSelection == 5)
                 {

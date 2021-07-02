@@ -39,10 +39,8 @@ namespace TenmoServer.DAO
 
 
                     }
-
                     else
                     {
-
                         account.Balance = -1;
                     }
                 }
@@ -55,7 +53,40 @@ namespace TenmoServer.DAO
             return account;
         }
 
-             
-        
+        public bool? VerifyAccountExists(Account accountToVerify)
+        {
+            bool accountExists = false;
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+                    SqlCommand cmd = new SqlCommand("SELECT account_id FROM accounts WHERE account_id = @account_id;", conn);
+                    cmd.Parameters.AddWithValue("@account_id", accountToVerify.AccountId);
+
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    if (reader.Read())
+                    {
+                        int? accountIdFromDatabase = Convert.ToInt32(reader["account_id"]);
+
+                        if (accountIdFromDatabase != null)
+                        {
+                            accountExists = true;
+                        }
+                    }
+                }
+            }
+            catch (SqlException)
+            {
+                return null;
+            }
+
+            return accountExists;
+        }
+
+
+
     }
 }
