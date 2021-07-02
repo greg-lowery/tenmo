@@ -8,7 +8,7 @@ namespace TenmoClient
     {
         private static readonly ConsoleService consoleService = new ConsoleService();
         private static readonly AuthService authService = new AuthService();
-
+        private static readonly ApiService apiService = new ApiService();
         static void Main(string[] args)
         {
             Run();
@@ -87,7 +87,15 @@ namespace TenmoClient
                 }
                 else if (menuSelection == 1)
                 {
-
+                    try
+                    {
+                        Account account = apiService.GetAccountInfo();
+                        Console.WriteLine($"Your account balance is {account.Balance:C2}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
                 }
                 else if (menuSelection == 2)
                 {
@@ -99,6 +107,27 @@ namespace TenmoClient
                 }
                 else if (menuSelection == 4)
                 {
+                    Console.WriteLine("Please enter the amount you would like to transfer in the format 0.00: ");
+
+                    string userInput = Console.ReadLine();
+
+
+                    while (!decimal.TryParse(userInput, out decimal amtToTransfer) || userInput.Substring(userInput.IndexOf('.') + 1).Length != 2)
+                    {
+                        Console.WriteLine("Invalid transfer amount submitted. Please try again.");
+                        userInput = Console.ReadLine();
+                    }
+
+                    Console.WriteLine("Please enter the account number you would like to transfer to: ");
+
+                    userInput = Console.ReadLine();
+
+
+                    while (!int.TryParse(userInput, out int accountId) || accountId < 2001)
+                    {
+                        Console.WriteLine("Invalid account number submitted. Please try again.");
+                        userInput = Console.ReadLine();
+                    }
 
                 }
                 else if (menuSelection == 5)

@@ -41,9 +41,6 @@ namespace TenmoServer.Controllers
 
             return Ok(account);
 
-
-            
-
         }
 
         // GET api/<AccountController>/5
