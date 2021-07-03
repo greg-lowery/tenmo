@@ -67,8 +67,6 @@ namespace TenmoClient
         {
             string amtToTransferString = amtToTransfer.ToString();
             
-            Object amtToTransferObject = new { amtToTransfer };
-            
             var request = new RestRequest($"{API_URL}account/verify/funds", DataFormat.Json);
             client.Authenticator = new JwtAuthenticator(UserService.GetToken());
             request.AddJsonBody(amtToTransferString);
@@ -92,37 +90,35 @@ namespace TenmoClient
             }
         }
 
-        public Transfer SubmitTransferForProcessing(Transfer transfer)
+        public Transfer SubmitTransferForProcessing(Transfer newtransfer)
         {
-            RestRequest request = new RestRequest(API_URL, DataFormat.Json);
-            request.AddJsonBody(transfer);
+            RestRequest request = new RestRequest($"{API_URL}account/transfer", DataFormat.Json);
+            request.AddJsonBody(newtransfer);
+            client.Authenticator = new JwtAuthenticator(UserService.GetToken());
 
+            //api request to the controller
             IRestResponse<Transfer> response = client.Post<Transfer>(request);
 
+            //I talked to the server and got no response/nothing was transported back:
             if (response.ResponseStatus != ResponseStatus.Completed)
             {
                 throw new Exception("Unable to reach server. Please try again later.", response.ErrorException);
             }
+
+            //I got a response, but the server told me that my response was not successful:
             else if (!response.IsSuccessful && (int)response.StatusCode == 500)
             {
-                throw new Exception("Internal Server Error - Status Code : 500");
-            }
-            else if (!response.IsSuccessful && (int)response.StatusCode == 404)
-            {
-                throw new Exception("Transfer Account Not Found - Status Code : 404");
-            }
-            else if (1 == 2)
-            {
-                //ERROR FOR INSUFFICIENT FUNDS - 400 error
-            }
-            else if (1 == 2)
-            {
-                
+                throw new Exception($"{response.ErrorMessage} - Status Code : 500");
             }
 
-            Transfer completedTransfer = response.Data;
+            else
+            {
+                Transfer successfulTransfer = response.Data;
 
-            return completedTransfer;
+                return successfulTransfer;
+            }
+
+
         }
 
     }

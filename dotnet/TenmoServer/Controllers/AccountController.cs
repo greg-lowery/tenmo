@@ -13,6 +13,7 @@ namespace TenmoServer.Controllers
     public class AccountController : ControllerBase
     {
         private readonly IAccountDao _dao;
+
         public AccountController(IAccountDao _accountDao)
         {
             _dao = _accountDao;
@@ -63,7 +64,7 @@ namespace TenmoServer.Controllers
             int userId = Convert.ToInt32(User.FindFirst("sub")?.Value);
             decimal amtToTransfer = Convert.ToDecimal(amtToTransferString);
 
-            bool? sufficientFunds = _dao.VerifySufficientFunds(userId, amtToTransfer); //Change this to new DAO method to verify account exists
+            bool? sufficientFunds = _dao.VerifySufficientFunds(userId, amtToTransfer); 
 
             if (sufficientFunds == null)
             {
@@ -78,29 +79,24 @@ namespace TenmoServer.Controllers
 
 
 
-        //POST new transfer from user's account to the account they typed in
+        
         //URL: SERVERURL/api/account/transfer
         [HttpPost("transfer")]
         public ActionResult<Transfer> ProcessAccountTransfer(Transfer newTransfer)
         {
-            //We need to make sure the account to transfer the funds to exists
-            int user1AccountId = Convert.ToInt32(User.FindFirst("sub")?.Value);
-            Account user1Account = _dao.GetAccount(user1AccountId);
-            Account user2Account = _dao.GetAccount(newTransfer.AccountTo);
-            
-            //We want to process the newTransfer in the database
-            //Things that need to happen for the transfer to be completed
-            //* Subtract the tranfer amount from User1 and update User1's account balance
-            //* Add the tranfer amount to User2 and update User2's account balance
-            //* TransferId, To , From, Amount
+            int requesterUserId = Convert.ToInt32(User.FindFirst("sub")?.Value);
 
-            
-            
-            
-            Transfer completedTransfer = new Transfer();
+            Transfer successfulTransfer = _dao.ProcessAccountTransfer(newTransfer, requesterUserId);
 
-
-            return Ok(completedTransfer);
+            if (successfulTransfer == null)
+            {
+                return StatusCode(500, "Internal Server Error. Please try again later.");
+            }
+            else if (successfulTransfer.TransferId == 0)
+            {
+                return StatusCode(500, "There was an Internal Error while processing your request. Please contact customer support.");
+            }
+            return Ok(successfulTransfer);
         }
     }
 }

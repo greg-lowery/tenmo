@@ -14,5 +14,7 @@ namespace TenmoServer.DAO
         public bool? VerifyAccountExists(Account accountToVerify);
 
         public bool? VerifySufficientFunds(int userId, decimal amtToTransfer);
+
+        public Transfer ProcessAccountTransfer(Transfer newTransfer, int requesterUserId);
     }
 }

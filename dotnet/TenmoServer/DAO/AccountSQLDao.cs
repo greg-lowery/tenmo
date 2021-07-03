@@ -120,6 +120,48 @@ namespace TenmoServer.DAO
             return sufficientFunds;
         }
 
+        public Transfer ProcessAccountTransfer(Transfer newTransfer, int requesterUserId)
+        {
+            Transfer successfulTransfer = new Transfer();
+            successfulTransfer.TransferAmount = newTransfer.TransferAmount;
+            successfulTransfer.AccountTo = newTransfer.AccountTo;
+            
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    //TODO use subqueries for the transfer type and transfer status in case those ints change in the database
+                        //Should we be re-verifying the destination account exists/is valid and that the user has sufficient funds within the body of this SQL transaction?
+                        //Those were handled separately earlier on...
+                    SqlCommand cmd = new SqlCommand($"BEGIN TRANSACTION; UPDATE accounts SET balance = balance - @transferAmount " +
+                                                    $"WHERE account_id = (SELECT account_id FROM accounts WHERE user_id = @requesterUserId); " +
+                                                    $"UPDATE accounts SET balance = balance + @transferAmount WHERE account_id = @accoutTo; COMMIT; " +
+                                                    $"INSERT INTO transfers (transfer_type_id, transfer_status_id, account_from, account_to, amount) " +
+                                                    $"VALUES(2, 2, (SELECT account_id FROM accounts WHERE user_id = @requesterUserId), @accoutTo, @transferAmount); " +
+                                                    $"SELECT @@IDENTITY AS [successfulTransfer]; COMMIT; ", conn);
+                    cmd.Parameters.AddWithValue("@transferAmount", newTransfer.TransferAmount);
+                    cmd.Parameters.AddWithValue("@requesterUserId", requesterUserId);
+                    cmd.Parameters.AddWithValue("@accoutTo", newTransfer.AccountTo);
+
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    if (reader.Read())
+                    {
+                        int successfulTransferId = Convert.ToInt32(reader["successfulTransfer"]);
+                        successfulTransfer.TransferId = successfulTransferId;
+                    }
+                }
+            }
+            catch (SqlException)
+            {
+                return null;
+            }
+
+            return successfulTransfer;
+        }
 
 
     }
