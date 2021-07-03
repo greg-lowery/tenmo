@@ -86,6 +86,40 @@ namespace TenmoServer.DAO
             return accountExists;
         }
 
+        public bool? VerifySufficientFunds(int userId, decimal amtToTransfer)
+        {
+            bool sufficientFunds = false;
+            decimal userAccountBalance = 0;
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+                    SqlCommand cmd = new SqlCommand("SELECT balance FROM accounts WHERE user_id = @user_id;", conn);
+                    cmd.Parameters.AddWithValue("@user_id", userId);
+
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    if (reader.Read())
+                    {
+                        userAccountBalance = Convert.ToDecimal(reader["balance"]);
+                    }
+                }
+            }
+            catch (SqlException)
+            {
+                return null;
+            }
+
+            if (userAccountBalance >= amtToTransfer)
+            {
+                sufficientFunds = true;
+            }
+
+            return sufficientFunds;
+        }
+
 
 
     }

@@ -40,10 +40,10 @@ namespace TenmoClient
 
         public bool VerifyTransferAccountExists(Account accountToVerify)
         {
-            var request = new RestRequest($"{API_URL}account/verify", DataFormat.Json);
+            var request = new RestRequest($"{API_URL}account/verify/account", DataFormat.Json);
             client.Authenticator = new JwtAuthenticator(UserService.GetToken());
             request.AddJsonBody(accountToVerify);
-            IRestResponse<Account> response = client.Post<Account>(request);
+            IRestResponse response = client.Post(request);
 
             if (response.ResponseStatus != ResponseStatus.Completed)
             {
@@ -54,6 +54,35 @@ namespace TenmoClient
                 throw new Exception("Internal Server Error - Status Code : 500");
             }
             else if ((int)response.StatusCode == 404)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        public bool VerifySufficientFunds(decimal amtToTransfer)
+        {
+            string amtToTransferString = amtToTransfer.ToString();
+            
+            Object amtToTransferObject = new { amtToTransfer };
+            
+            var request = new RestRequest($"{API_URL}account/verify/funds", DataFormat.Json);
+            client.Authenticator = new JwtAuthenticator(UserService.GetToken());
+            request.AddJsonBody(amtToTransferString);
+            IRestResponse response = client.Post(request);
+
+            if (response.ResponseStatus != ResponseStatus.Completed)
+            {
+                throw new Exception("Unable to reach server. Please try again later.", response.ErrorException);
+            }
+            else if (!response.IsSuccessful && (int)response.StatusCode == 500)
+            {
+                throw new Exception("Internal Server Error - Status Code : 500");
+            }
+            else if ((int)response.StatusCode == 400)
             {
                 return false;
             }

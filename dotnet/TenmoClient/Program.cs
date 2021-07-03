@@ -131,7 +131,35 @@ namespace TenmoClient
                     Account accountToVerify = new Account();
                     accountToVerify.AccountId = accountId;
 
-                    bool transferAccountExists = apiService.VerifyTransferAccountExists(accountToVerify);
+                    bool transferAccountExists = false;
+                    bool sufficientFundsToTransfer = false;
+
+                    try
+                    {
+                        transferAccountExists = apiService.VerifyTransferAccountExists(accountToVerify);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+
+                    try
+                    {
+                        sufficientFundsToTransfer = apiService.VerifySufficientFunds(amtToTransfer);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+
+                    if (!transferAccountExists)
+                    {
+                        Console.WriteLine("Account entered does not exist. Please make a new request.");
+                    }
+                    else if (!sufficientFundsToTransfer)
+                    {
+                        Console.WriteLine("You do not have sufficient funds to make this transfer. Please make a new request.");
+                    }
 
                     if (transferAccountExists)
                     {

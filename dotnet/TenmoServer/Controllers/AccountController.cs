@@ -39,12 +39,12 @@ namespace TenmoServer.Controllers
             return Ok(account);
         }
 
-        [HttpPost("verify")]
-        public ActionResult VerifyTransferAccountExists(Account accountToVerify)  //build out to verify account exists
+        [HttpPost("verify/account")]
+        public ActionResult VerifyTransferAccountExists(Account accountToVerify)
         {
             int accountNumberToVerify = accountToVerify.AccountId;
 
-            bool? accountExists = _dao.VerifyAccountExists(accountToVerify); //Change this to new DAO method to verify account exists
+            bool? accountExists = _dao.VerifyAccountExists(accountToVerify);
 
             if (accountExists == null)
             {
@@ -56,6 +56,27 @@ namespace TenmoServer.Controllers
             }
             return Ok();
         }
+
+        [HttpPost("verify/funds")]
+        public ActionResult VerifySufficientFunds(string amtToTransferString)
+        {
+            int userId = Convert.ToInt32(User.FindFirst("sub")?.Value);
+            decimal amtToTransfer = Convert.ToDecimal(amtToTransferString);
+
+            bool? sufficientFunds = _dao.VerifySufficientFunds(userId, amtToTransfer); //Change this to new DAO method to verify account exists
+
+            if (sufficientFunds == null)
+            {
+                return StatusCode(500, "Internal Server Error. Please try again later.");
+            }
+            else if (sufficientFunds == false)
+            {
+                return BadRequest("Insufficient Funds to Transfer");
+            }
+            return Ok();
+        }
+
+
 
         //POST new transfer from user's account to the account they typed in
         //URL: SERVERURL/api/account/transfer
