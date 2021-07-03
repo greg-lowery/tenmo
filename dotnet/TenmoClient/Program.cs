@@ -110,9 +110,9 @@ namespace TenmoClient
                     Console.WriteLine("Please enter the amount you would like to transfer in the format 0.00: ");
 
                     string userInput = Console.ReadLine();
+                    decimal amtToTransfer = 0;
 
-
-                    while (!decimal.TryParse(userInput, out decimal amtToTransfer) || userInput.Substring(userInput.IndexOf('.') + 1).Length != 2)
+                    while (!decimal.TryParse(userInput, out amtToTransfer) || userInput.Substring(userInput.IndexOf('.') + 1).Length != 2)
                     {
                         Console.WriteLine("Invalid transfer amount submitted. Please try again.");
                         userInput = Console.ReadLine();
@@ -121,13 +121,26 @@ namespace TenmoClient
                     Console.WriteLine("Please enter the account number you would like to transfer to: ");
 
                     userInput = Console.ReadLine();
+                    int accountId = 0;
 
-
-                    while (!int.TryParse(userInput, out int accountId) || accountId < 2001)
+                    while (!int.TryParse(userInput, out accountId) || accountId < 2001)
                     {
                         Console.WriteLine("Invalid account number submitted. Please try again.");
                         userInput = Console.ReadLine();
                     }
+
+                    Account transferAccount = new Account();
+                    transferAccount.AccountId = accountId;
+                    try
+                    {
+                        bool accountExists = apiService.VerifyTransferAccountExists(transferAccount);
+                    }
+                    catch (Exception ex)
+                    {
+
+                        Console.WriteLine(ex.Message);
+                    }
+                    //are there sufficient funds to transfer? does the destination account exist?
 
                 }
                 else if (menuSelection == 5)

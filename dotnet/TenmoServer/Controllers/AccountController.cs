@@ -43,6 +43,36 @@ namespace TenmoServer.Controllers
 
         }
 
+
+        [HttpGet]
+        public ActionResult<Account> VerifyTransferAccountExists()  //build out to verify account exists
+        {
+
+            int userId = Convert.ToInt32(User.FindFirst("sub")?.Value);
+
+            Account account = _dao.GetAccount(userId);
+
+            if (account == null)
+            {
+                return StatusCode(500, "Internal Server Error. Please try again later.");
+            }
+            else if (account.Balance == -1)
+            {
+                return NotFound();
+            }
+
+            return Ok(account);
+
+        }
+
+
+
+
+
+
+
+
+
         // GET api/<AccountController>/5
         [HttpGet("{id}")]
         public string Get(int id)
