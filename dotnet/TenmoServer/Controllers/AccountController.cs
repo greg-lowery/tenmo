@@ -6,9 +6,6 @@ using System.Threading.Tasks;
 using TenmoServer.DAO;
 using TenmoServer.Models;
 
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-
 namespace TenmoServer.Controllers
 {
     [Route("api/[controller]")]
@@ -21,11 +18,11 @@ namespace TenmoServer.Controllers
             _dao = _accountDao;
         }
 
+        //URL: SERVERURL/api/account
         //GET: account balance
         [HttpGet]
         public ActionResult<Account> GetAccountBalance()
         {
-
             int userId = Convert.ToInt32(User.FindFirst("sub")?.Value);
 
             Account account = _dao.GetAccount(userId);
@@ -40,62 +37,70 @@ namespace TenmoServer.Controllers
             }
 
             return Ok(account);
-
         }
 
-
-        [HttpGet]
-        public ActionResult<Account> VerifyTransferAccountExists()  //build out to verify account exists
+        [HttpPost("verify/account")]
+        public ActionResult VerifyTransferAccountExists(Account accountToVerify)
         {
+            int accountNumberToVerify = accountToVerify.AccountId;
 
-            int userId = Convert.ToInt32(User.FindFirst("sub")?.Value);
+            bool? accountExists = _dao.VerifyAccountExists(accountToVerify);
 
-            Account account = _dao.GetAccount(userId);
-
-            if (account == null)
+            if (accountExists == null)
             {
                 return StatusCode(500, "Internal Server Error. Please try again later.");
             }
-            else if (account.Balance == -1)
+            else if (accountExists == false)
             {
                 return NotFound();
             }
+            return Ok();
+        }
 
-            return Ok(account);
+        [HttpPost("verify/funds")]
+        public ActionResult VerifySufficientFunds(string amtToTransferString)
+        {
+            int userId = Convert.ToInt32(User.FindFirst("sub")?.Value);
+            decimal amtToTransfer = Convert.ToDecimal(amtToTransferString);
 
+            bool? sufficientFunds = _dao.VerifySufficientFunds(userId, amtToTransfer); //Change this to new DAO method to verify account exists
+
+            if (sufficientFunds == null)
+            {
+                return StatusCode(500, "Internal Server Error. Please try again later.");
+            }
+            else if (sufficientFunds == false)
+            {
+                return BadRequest("Insufficient Funds to Transfer");
+            }
+            return Ok();
         }
 
 
 
-
-
-
-
-
-
-        // GET api/<AccountController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+        //POST new transfer from user's account to the account they typed in
+        //URL: SERVERURL/api/account/transfer
+        [HttpPost("transfer")]
+        public ActionResult<Transfer> ProcessAccountTransfer(Transfer newTransfer)
         {
-            return "value";
-        }
+            //We need to make sure the account to transfer the funds to exists
+            int user1AccountId = Convert.ToInt32(User.FindFirst("sub")?.Value);
+            Account user1Account = _dao.GetAccount(user1AccountId);
+            Account user2Account = _dao.GetAccount(newTransfer.AccountTo);
+            
+            //We want to process the newTransfer in the database
+            //Things that need to happen for the transfer to be completed
+            //* Subtract the tranfer amount from User1 and update User1's account balance
+            //* Add the tranfer amount to User2 and update User2's account balance
+            //* TransferId, To , From, Amount
 
-        // POST api/<AccountController>
-        [HttpPost]
-        public void Post([FromBody] string value)
-        {
-        }
+            
+            
+            
+            Transfer completedTransfer = new Transfer();
 
-        // PUT api/<AccountController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
 
-        // DELETE api/<AccountController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
+            return Ok(completedTransfer);
         }
     }
 }

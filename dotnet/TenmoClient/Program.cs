@@ -107,19 +107,23 @@ namespace TenmoClient
                 }
                 else if (menuSelection == 4)
                 {
-                    Console.WriteLine("Please enter the amount you would like to transfer in the format 0.00: ");
-
+                    Console.WriteLine("Please enter the amount you would like to transfer in the format 0.00:");
                     string userInput = Console.ReadLine();
                     decimal amtToTransfer = 0;
 
+<<<<<<< HEAD
+=======
+                    decimal amtToTransfer;
+                    int accountId;
+
+>>>>>>> 4b267de135040b1dd511b61dc17da9ca75ac2735
                     while (!decimal.TryParse(userInput, out amtToTransfer) || userInput.Substring(userInput.IndexOf('.') + 1).Length != 2)
                     {
                         Console.WriteLine("Invalid transfer amount submitted. Please try again.");
                         userInput = Console.ReadLine();
                     }
 
-                    Console.WriteLine("Please enter the account number you would like to transfer to: ");
-
+                    Console.WriteLine("Please enter the account number you would like to transfer to:");
                     userInput = Console.ReadLine();
                     int accountId = 0;
 
@@ -129,6 +133,7 @@ namespace TenmoClient
                         userInput = Console.ReadLine();
                     }
 
+<<<<<<< HEAD
                     Account transferAccount = new Account();
                     transferAccount.AccountId = accountId;
                     try
@@ -142,6 +147,65 @@ namespace TenmoClient
                     }
                     //are there sufficient funds to transfer? does the destination account exist?
 
+=======
+                    Account accountToVerify = new Account();
+                    accountToVerify.AccountId = accountId;
+
+                    bool transferAccountExists = false;
+                    bool sufficientFundsToTransfer = false;
+
+                    try
+                    {
+                        transferAccountExists = apiService.VerifyTransferAccountExists(accountToVerify);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+
+                    try
+                    {
+                        sufficientFundsToTransfer = apiService.VerifySufficientFunds(amtToTransfer);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+
+                    if (!transferAccountExists)
+                    {
+                        Console.WriteLine("Account entered does not exist. Please make a new request.");
+                    }
+                    else if (!sufficientFundsToTransfer)
+                    {
+                        Console.WriteLine("You do not have sufficient funds to make this transfer. Please make a new request.");
+                    }
+
+                    if (transferAccountExists)
+                    {
+                        Console.WriteLine("Account exists!");
+                        /*
+                        Transfer transfer = new Transfer();
+                        transfer.AccountTo = accountId;
+                        transfer.TransferAmount = amtToTransfer;
+
+                        try
+                        {
+                            apiService.SubmitTransferForProcessing(transfer);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                        }
+                        */
+                    }
+                    else
+                    {
+                        Console.WriteLine("Account entered does not exist. Please make a new request again.");
+                    }
+                    //We want to send the account # and transfer amount to the server to conduct the transfer
+                    //>>>Write an API Service method that sends the transfer to the server
+>>>>>>> 4b267de135040b1dd511b61dc17da9ca75ac2735
                 }
                 else if (menuSelection == 5)
                 {
