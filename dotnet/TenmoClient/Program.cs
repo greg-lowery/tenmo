@@ -107,54 +107,60 @@ namespace TenmoClient
                 }
                 else if (menuSelection == 4)
                 {
-                    Console.WriteLine("Please enter the amount you would like to transfer in the format 0.00:");
-                    string userInput = Console.ReadLine();
                     decimal amtToTransfer;
-                    int accountId;
+                    string userInput;
+                    List<ReturnUser> userList = new List<ReturnUser>();
+
+                    try
+                    {
+                        Console.WriteLine("\nList of Avalaible TEnmo Users:\n");
+                        userList = apiService.GetAllUsers();
+                        for (int i = 0; i < userList.Count; i++)
+                        {
+                            Console.WriteLine($"{i + 1}) Username: {userList[i].Username}     User Id: {userList[i].UserId}\n");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+
+                    Console.WriteLine("Please choose a user to transfer TE Bucks to:");
+
+                    int selectedUser;
+                    userInput = Console.ReadLine();
+                    while (!int.TryParse(userInput, out selectedUser) || selectedUser <= 0 || selectedUser > userList.Count)
+                    {
+                        Console.WriteLine("Invalid user selection. Please try again.");
+                        userInput = Console.ReadLine();
+                    }
+
+                    int destinationUserId = userList[selectedUser - 1].UserId;
+
+
+                    //Account accountToVerify = new Account();
+                    //accountToVerify.AccountId = accountId;
+                    //bool transferAccountExists = false;
+                    //bool sufficientFundsToTransfer = false;
+                    //try
+                    //{
+                    //    transferAccountExists = apiService.VerifyTransferAccountExists(accountToVerify);
+                    //}
+                    //catch (Exception ex)
+                    //{
+                    //    Console.WriteLine(ex.Message);
+                    //}
+
+                    Console.WriteLine("Please enter the amount you would like to transfer in the format 0.00:");
+                    userInput = Console.ReadLine();
 
                     while (!decimal.TryParse(userInput, out amtToTransfer) || userInput.Substring(userInput.IndexOf('.') + 1).Length != 2)
                     {
                         Console.WriteLine("Invalid transfer amount submitted. Please try again.");
                         userInput = Console.ReadLine();
                     }
-
-                    Console.WriteLine("Please enter the account number you would like to transfer to:");
-                    userInput = Console.ReadLine();
-
-                    while (!int.TryParse(userInput, out accountId) || accountId < 2001)
-                    {
-                        Console.WriteLine("Invalid account number submitted. Please try again.");
-                        userInput = Console.ReadLine();
-                    }
-
-
-                    Account transferAccount = new Account();
-                    transferAccount.AccountId = accountId;
-                    try
-                    {
-                        bool accountExists = apiService.VerifyTransferAccountExists(transferAccount);
-                    }
-                    catch (Exception ex)
-                    {
-
-                        Console.WriteLine(ex.Message);
-                    }
-
-
-                    Account accountToVerify = new Account();
-                    accountToVerify.AccountId = accountId;
-
-                    bool transferAccountExists = false;
+                
                     bool sufficientFundsToTransfer = false;
-
-                    try
-                    {
-                        transferAccountExists = apiService.VerifyTransferAccountExists(accountToVerify);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex.Message);
-                    }
 
                     try
                     {
@@ -165,26 +171,28 @@ namespace TenmoClient
                         Console.WriteLine(ex.Message);
                     }
 
-                    if (!transferAccountExists)
-                    {
-                        Console.WriteLine("Account entered does not exist. Please make a new request.");
-                    }
-                    else if (!sufficientFundsToTransfer)
+                    //if (!accountExists)
+                    //{
+                    //    Console.WriteLine("Account entered does not exist. Please make a new request.");
+                    //}
+                    if (!sufficientFundsToTransfer)
                     {
                         Console.WriteLine("You do not have sufficient funds to make this transfer. Please make a new request.");
                     }
 
-                    if (transferAccountExists && sufficientFundsToTransfer)
+                    if (sufficientFundsToTransfer)
                     {
                         
                         Transfer newtransfer = new Transfer();
-                        newtransfer.AccountTo = accountId;
+                        ReturnUser transferDestinationUser = new ReturnUser();
+                        transferDestinationUser.UserId = destinationUserId;
                         newtransfer.TransferAmount = amtToTransfer;
+
 
                         try
                         {
-                            Transfer successfulTransfer = apiService.SubmitTransferForProcessing(newtransfer);
-                            Console.WriteLine($"Transfer {successfulTransfer.TransferId} of {successfulTransfer.TransferAmount} to {successfulTransfer.AccountTo} was successful. Thank You!");
+                            Transfer successfulTransfer = apiService.SubmitTransferForProcessing(newtransfer, transferDestinationUser);
+                            Console.WriteLine($"Transfer {successfulTransfer.TransferId} of {successfulTransfer.TransferAmount} to {userList[selectedUser - 1].Username} was successful. Thank You!");
                         }
                         catch (Exception ex)
                         {

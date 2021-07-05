@@ -15,6 +15,8 @@ namespace TenmoServer.DAO
 
         public bool? VerifySufficientFunds(int userId, decimal amtToTransfer);
 
-        public Transfer ProcessAccountTransfer(Transfer newTransfer, int requesterUserId);
+        public Transfer ProcessAccountTransfer(Transfer newTransfer, int requesterUserId, int destinationUserId);
+
+        public List<ReturnUser> GetAllUsers(int userId);
     }
 }

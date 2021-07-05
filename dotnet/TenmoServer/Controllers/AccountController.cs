@@ -44,9 +44,7 @@ namespace TenmoServer.Controllers
         public ActionResult VerifyTransferAccountExists(Account accountToVerify)
         {
             int accountNumberToVerify = accountToVerify.AccountId;
-
             bool? accountExists = _dao.VerifyAccountExists(accountToVerify);
-
             if (accountExists == null)
             {
                 return StatusCode(500, "Internal Server Error. Please try again later.");
@@ -82,11 +80,11 @@ namespace TenmoServer.Controllers
         
         //URL: SERVERURL/api/account/transfer
         [HttpPost("transfer")]
-        public ActionResult<Transfer> ProcessAccountTransfer(Transfer newTransfer)
+        public ActionResult<Transfer> ProcessAccountTransfer(TransferUser transferUser)
         {
             int requesterUserId = Convert.ToInt32(User.FindFirst("sub")?.Value);
 
-            Transfer successfulTransfer = _dao.ProcessAccountTransfer(newTransfer, requesterUserId);
+            Transfer successfulTransfer = _dao.ProcessAccountTransfer(transferUser.Transfer, requesterUserId, transferUser.UserId);
 
             if (successfulTransfer == null)
             {
@@ -97,6 +95,34 @@ namespace TenmoServer.Controllers
                 return StatusCode(500, "There was an Internal Error while processing your request. Please contact customer support.");
             }
             return Ok(successfulTransfer);
+        }
+
+        [HttpGet("userlist")]
+        public ActionResult<List<ReturnUser>> GetAllUsers()
+        {
+            int userId = Convert.ToInt32(User.FindFirst("sub")?.Value);
+            if (userId > 1000)
+            {
+                List<ReturnUser> userList = new List<ReturnUser>();
+                userList = _dao.GetAllUsers(userId);
+
+
+                if (userList == null)
+                {
+                    return StatusCode(500, "Internal Server Error. Please try again later.");
+                }
+
+                else if (userList.Count == 0)
+                {
+                    return NoContent();
+                }
+
+                return Ok(userList);
+            }
+            else
+            {
+                return StatusCode(403, "Invalid Login. Please login with valid credentials.");
+            }
         }
     }
 }

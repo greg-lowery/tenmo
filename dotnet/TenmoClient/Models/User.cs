@@ -1,4 +1,4 @@
-﻿namespace TenmoServer.Models
+﻿namespace TenmoClient.Models
 {
     public class User
     {
@@ -8,7 +8,6 @@
         public string Salt { get; set; }
         public string Email { get; set; }
     }
-
     public class TransferUser
     {
         public int UserId { get; set; }
@@ -24,14 +23,5 @@
         public string Username { get; set; }
         //public string Role { get; set; }
         public string Token { get; set; }
-    }
-
-    /// <summary>
-    /// Model to accept login parameters
-    /// </summary>
-    public class LoginUser
-    {
-        public string Username { get; set; }
-        public string Password { get; set; }
     }
 }
